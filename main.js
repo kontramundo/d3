@@ -187,16 +187,6 @@ node.append("circle")
     .attr("r", (d) => d.data.value)
     .style("stroke", (d) => d.data.type)
     .style("fill", (d) => d.data.level)
-    /*  .on("mouseover", function () {
-        d3.select(this).style("cursor", "pointer");
-        d3.select(this).style("stroke-width", "3px");
-    })
-    .on("mouseout", function () {
-        d3.select(this).style("cursor", "default");
-        d3.select(this).style("stroke-width", "1px");
-    })
-    .append("title")
-    .text((d) => d.data.description); */
     .attr("data-bs-toggle", "tooltip")
     .attr("data-bs-placement", "top")
     .attr("data-bs-original-title", (d) => d.data.description);
@@ -206,16 +196,14 @@ const tooltips = node.selectAll("circle").each(function () {
     new bootstrap.Tooltip(this);
 });
 
-// adds the text to the node
-node.append("text")
-    .attr("dy", ".35em")
-    .attr("x", (d) => (d.children ? (d.data.value + 5) * -1 : d.data.value + 5))
+// Agregar el texto utilizando "foreignObject" para permitir múltiples líneas
+node.append("foreignObject")
+    //.attr("x", (d) => (d.children ? (d.data.value + 5) * -1 : d.data.value + 5))
+    .attr("y", 10) // Ajusta el posicionamiento vertical según tus necesidades
+    .attr("width", 300) // Ancho máximo de cada línea (ajusta según tus necesidades)
+    .attr("height", 200) // Altura del contenedor de texto (ajusta según tus necesidades)
     .style("text-anchor", (d) => (d.children ? "end" : "start"))
-    .attr("transform", (d) => {
-        // Determinar el ángulo de rotación del texto según la dirección de la línea
-        const rotation = d.children ? -50 : -50;
-        // Ajustar la posición vertical del texto según la dirección de la línea
-        const yOffset = d.children ? -0 : 0;
-        return `translate(${yOffset}, 0) rotate(${rotation})`;
-    })
-    .text((d) => d.data.name);
+    .html((d) => {
+        const lines = d.data.name.split("\n");
+        return lines.map((line) => `<div>${line}</div>`).join("");
+    });
