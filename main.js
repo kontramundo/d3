@@ -110,7 +110,7 @@ const treeData = {
     ],
 };
 // set the dimensions and margins of the diagram
-const margin = { top: 20, right: 300, bottom: 30, left: 150 };
+const margin = { top: 150, right: 350, bottom: 120, left: 140 };
 const width = window.innerWidth - margin.left - margin.right;
 const height = window.innerHeight - margin.top - margin.bottom;
 
@@ -123,17 +123,23 @@ let nodes = d3.hierarchy(treeData, (d) => d.children);
 // maps the node data to the tree layout
 nodes = treemap(nodes);
 
-// append the svg object to the body of the page
-// appends a 'group' element to 'svg'
-// moves the 'group' element to the top left margin
+// Append the SVG object to the body of the page
 const svg = d3
-        .select("#app")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom),
-    g = svg
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .select("#app")
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr(
+        "viewBox",
+        `0 0 ${width + margin.left + margin.right} ${
+            height + margin.top + margin.bottom
+        }`
+    )
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+const g = svg
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // adds the links between the nodes
 const link = g
@@ -142,7 +148,7 @@ const link = g
     .enter()
     .append("path")
     .attr("class", "link")
-
+    //.style("stroke", (d) => d.data.level)
     .attr("d", (d) => {
         return (
             "M" +
@@ -181,6 +187,16 @@ node.append("circle")
     .attr("r", (d) => d.data.value)
     .style("stroke", (d) => d.data.type)
     .style("fill", (d) => d.data.level)
+    /*  .on("mouseover", function () {
+        d3.select(this).style("cursor", "pointer");
+        d3.select(this).style("stroke-width", "3px");
+    })
+    .on("mouseout", function () {
+        d3.select(this).style("cursor", "default");
+        d3.select(this).style("stroke-width", "1px");
+    })
+    .append("title")
+    .text((d) => d.data.description); */
     .attr("data-bs-toggle", "tooltip")
     .attr("data-bs-placement", "top")
     .attr("data-bs-original-title", (d) => d.data.description);
@@ -195,4 +211,11 @@ node.append("text")
     .attr("dy", ".35em")
     .attr("x", (d) => (d.children ? (d.data.value + 5) * -1 : d.data.value + 5))
     .style("text-anchor", (d) => (d.children ? "end" : "start"))
+    .attr("transform", (d) => {
+        // Determinar el ángulo de rotación del texto según la dirección de la línea
+        const rotation = d.children ? -50 : -50;
+        // Ajustar la posición vertical del texto según la dirección de la línea
+        const yOffset = d.children ? -0 : 0;
+        return `translate(${yOffset}, 0) rotate(${rotation})`;
+    })
     .text((d) => d.data.name);
