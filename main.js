@@ -9,7 +9,7 @@ const treeData = {
     value: 10,
     type: "green",
     level: "green",
-    description: "2 días habiles\nObligatoria",
+    description: "2 días habiles </br> Obligatoria",
     children: [
         {
             name: "Notificacíon",
@@ -187,14 +187,10 @@ node.append("circle")
     .attr("r", (d) => d.data.value)
     .style("stroke", (d) => d.data.type)
     .style("fill", (d) => d.data.level)
-    .attr("data-bs-toggle", "tooltip")
-    .attr("data-bs-placement", "top")
-    .attr("data-bs-original-title", (d) => d.data.description);
-
-// initialize tooltips
-const tooltips = node.selectAll("circle").each(function () {
-    new bootstrap.Tooltip(this);
-});
+    .attr("data-bs-toggle", "modal")
+    .attr("data-bs-target", "#modalD3")
+    .attr("role", "button")
+    .on("click", showModal);
 
 // Agregar el texto utilizando "foreignObject" para permitir múltiples líneas
 node.append("foreignObject")
@@ -207,3 +203,15 @@ node.append("foreignObject")
         const lines = d.data.name.split("\n");
         return lines.map((line) => `<div>${line}</div>`).join("");
     });
+
+function showModal() {
+    // Obtén los datos relacionados con el nodo
+    const nodeData = d3.select(this).datum().data;
+
+    // Actualiza el contenido del modal con los datos del nodo
+    const modalTitle = document.querySelector("#modalD3 .modal-title");
+    const modalBody = document.querySelector("#modalD3 .modal-body");
+
+    modalTitle.innerHTML = nodeData.name;
+    modalBody.innerHTML = nodeData.description;
+}
