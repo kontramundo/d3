@@ -2,16 +2,6 @@ body {
     background-color: #eee;
 }
 
-.node circle {
-    fill: #fff;
-    stroke: #fff;
-    stroke-width: 3px;
-}
-
-.node text {
-    font: 16px sans-serif;
-}
-
 .link {
     fill: none;
     stroke: #ccc;

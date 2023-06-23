@@ -187,6 +187,7 @@ const scale = d3
 node.append("circle")
     .attr("r", 10)
     .style("fill", (d) => d.data.level)
+    .style("outline", "none")
     .attr("data-bs-toggle", "tooltip")
     .attr("data-bs-placement", "top")
     .attr("data-bs-original-title", (d) => d.data.name)
