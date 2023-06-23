@@ -16,7 +16,7 @@ const treeData = {
             value: 10,
             type: "blue",
             level: "blue",
-            description: "5 días habiles\nObligatoria",
+            description: "5 días habiles Obligatoria",
             children: [
                 {
                     name: "Comparecencia",
@@ -109,19 +109,11 @@ const treeData = {
         },
     ],
 };
+
 // set the dimensions and margins of the diagram
-const margin = { top: 150, right: 350, bottom: 120, left: 140 };
+const margin = { top: 0, right: 150, bottom: 0, left: 50 };
 const width = window.innerWidth - margin.left - margin.right;
 const height = window.innerHeight - margin.top - margin.bottom;
-
-// declares a tree layout and assigns the size
-const treemap = d3.tree().size([height, width]);
-
-// assigns the data to a hierarchy using parent-child relationships
-let nodes = d3.hierarchy(treeData, (d) => d.children);
-
-// maps the node data to the tree layout
-nodes = treemap(nodes);
 
 // Append the SVG object to the body of the page
 const svg = d3
@@ -141,6 +133,15 @@ const g = svg
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+// declares a tree layout and assigns the size
+const treemap = d3.tree().size([height, width]);
+
+// assigns the data to a hierarchy using parent-child relationships
+const nodes = d3.hierarchy(treeData, (d) => d.children);
+
+// maps the node data to the tree layout
+const tree = treemap(nodes);
+
 // adds the links between the nodes
 const link = g
     .selectAll(".link")
@@ -148,32 +149,27 @@ const link = g
     .enter()
     .append("path")
     .attr("class", "link")
-    //.style("stroke", (d) => d.data.level)
     .attr("d", (d) => {
-        return (
-            "M" +
-            d.y +
-            "," +
-            d.x +
-            "C" +
-            (d.y + d.parent.y) / 2 +
-            "," +
-            d.x +
-            " " +
-            (d.y + d.parent.y) / 2 +
-            "," +
-            d.parent.x +
-            " " +
-            d.parent.y +
-            "," +
-            d.parent.x
-        );
+        const separation = 100; // Separación horizontal entre los nodos
+        const dx = d.x - d.parent.x; // Diferencia vertical entre los nodos
+        const dy = d.y - d.parent.y; // Diferencia horizontal entre los nodos
+        const dr = Math.sqrt(dx * dx + dy * dy); // Distancia entre los nodos
+
+        // Ajusta la posición horizontal del punto de control para aumentar la separación
+        const controlPointX = (separation * dy) / dr;
+
+        return `
+      M ${d.y},${d.x}
+      C ${(d.y + d.parent.y) / 2 + controlPointX},${d.x}
+        ${(d.y + d.parent.y) / 2 + controlPointX},${d.parent.x}
+        ${d.parent.y},${d.parent.x}
+    `;
     });
 
 // adds each node as a group
 const node = g
     .selectAll(".node")
-    .data(nodes.descendants())
+    .data(tree.descendants())
     .enter()
     .append("g")
     .attr(
@@ -182,26 +178,50 @@ const node = g
     )
     .attr("transform", (d) => "translate(" + d.y + "," + d.x + ")");
 
+const scale = d3
+    .scaleLinear()
+    .domain([0, 0]) // Rango de valores de movimiento (puedes ajustarlo según tus necesidades)
+    .range([10, 20]); // Rango de tamaños del círculo (puedes ajustarlo según tus necesidades)
+
 // adds the circle to the node
 node.append("circle")
-    .attr("r", (d) => d.data.value)
-    .style("stroke", (d) => d.data.type)
+    .attr("r", 10)
     .style("fill", (d) => d.data.level)
+    .attr("data-bs-toggle", "tooltip")
+    .attr("data-bs-placement", "top")
+    .attr("data-bs-original-title", (d) => d.data.name)
     .attr("data-bs-toggle", "modal")
     .attr("data-bs-target", "#modalD3")
     .attr("role", "button")
-    .on("click", showModal);
+    .on("click", showModal)
+    .on("mousemove", function (event) {
+        // Obtiene el movimiento actual y ajusta el tamaño del círculo
+        const movement = d3.pointer(event)[0]; // Puedes ajustar esto según el eje que desees utilizar (x o y)
+        const scaledRadius = Math.max(scale(movement), 0); // Asegura que el radio no sea negativo
+        d3.select(this).attr("r", scaledRadius);
+    })
+    .on("mouseout", function () {
+        // Restaura el tamaño inicial del círculo al salir del área
+        d3.select(this).attr("r", 10);
+    });
+
+// initialize tooltips
+const tooltips = node.selectAll("circle").each(function () {
+    new bootstrap.Tooltip(this);
+});
 
 // Agregar el texto utilizando "foreignObject" para permitir múltiples líneas
 node.append("foreignObject")
-    //.attr("x", (d) => (d.children ? (d.data.value + 5) * -1 : d.data.value + 5))
-    .attr("y", 10) // Ajusta el posicionamiento vertical según tus necesidades
-    .attr("width", 300) // Ancho máximo de cada línea (ajusta según tus necesidades)
+    .attr("x", (d) => (d.children ? -8 : 8))
+    .attr("y", 8) // Ajusta el posicionamiento vertical según tus necesidades
+    .attr("width", 250) // Ancho máximo de cada línea (ajusta según tus necesidades)
     .attr("height", 200) // Altura del contenedor de texto (ajusta según tus necesidades)
     .style("text-anchor", (d) => (d.children ? "end" : "start"))
     .html((d) => {
         const lines = d.data.name.split("\n");
-        return lines.map((line) => `<div>${line}</div>`).join("");
+        return lines
+            .map((line) => `<div class="link-responsive">${line}</div>`)
+            .join("");
     });
 
 function showModal() {

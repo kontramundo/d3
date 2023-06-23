@@ -17,3 +17,19 @@ body {
     stroke: #ccc;
     stroke-width: 2px;
 }
+
+@media (max-width: 768px) {
+    .link-responsive {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .link-responsive {
+        font-size: 10px;
+        width: 100px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}
